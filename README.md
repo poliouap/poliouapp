@@ -5,7 +5,7 @@ Este é um projeto composto por uma API **Backend** construída com Express e um
 ## 🛠️ Pré-requisitos
 
 Antes de começar, certifique-se de ter instalado em sua máquina:
-- **Node.js** (versão recomendada v18 ou superior)
+- **Node.js** (versão recomendada v24 ou superior)
 - **npm** (gerenciador de pacotes do Node, instalado automaticamente com ele) ou **yarn**
 - **Docker** (opcional, para execução local em containers)
 
