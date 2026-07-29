@@ -21,13 +21,25 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: User registered successfully
+          description: User registered successfully. O Frontend deve redirecionar o usuário para a tela de login após receber este status.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
         '400':
-          description: Bad request (e.g. missing fields, email already in use)
+          description: Bad request (e.g., missing fields or password too short)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (Email already in use)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Este e-mail já está cadastrado em nossa base de dados.'
 
   /auth/login:
     post:
@@ -93,6 +105,7 @@ components:
         password:
           type: string
           format: password
+          minLength: 8
           example: 'StrongP@ssw0rd!'
 
     UserResponse:
@@ -130,3 +143,10 @@ components:
           example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         user:
           $ref: '#/components/schemas/User'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Descrição clara do erro ocorrido'
