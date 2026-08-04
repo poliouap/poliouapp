@@ -16,6 +16,16 @@ export const authRepository = {
                 passwordHash: data.passwordHash
             }
         })
+    },
+
+    createSession: async (userId: string, refreshToken: string, expiresAt: Date) => {
+        return prisma.session.create({
+            data: {
+                userId,
+                refreshToken,
+                expiresAt
+            }
+        });
     }
 
 }
