@@ -7,16 +7,17 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(uuid())
+  id              String   @id @default(uuid())
   name            String
-  email           String    @unique
+  email           String   @unique
   passwordHash    String
+  isPremium       Boolean  @default(false)
   avatarUrl       String?
-  themePreference String    @default("system")
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  themePreference String   @default("system")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  sessions        Session[]
+  sessions Session[]
 }
 
 model Session {
@@ -26,5 +27,5 @@ model Session {
   expiresAt    DateTime
   createdAt    DateTime @default(now())
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
