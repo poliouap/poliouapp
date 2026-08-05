@@ -1,4 +1,4 @@
-# ADR 004: Estratégia de Autenticação
+# ADR 003: Estratégia de Autenticação
 
 ## Status
 Aceito

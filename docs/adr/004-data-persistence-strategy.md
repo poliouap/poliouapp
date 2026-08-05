@@ -1,4 +1,4 @@
-# ADR 005: Estratégia de Persistência de Dados
+# ADR 004: Estratégia de Persistência de Dados
 
 ## Status
 Aceito
