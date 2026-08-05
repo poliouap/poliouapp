@@ -1,4 +1,4 @@
-# ADR 003: Estratégia de API REST
+# ADR 002: Estratégia de API REST
 
 ## Status
 Aceito
