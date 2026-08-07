@@ -66,4 +66,19 @@ export const authService = {
       },
     };
   },
+
+  logoutUser: async (refreshToken: string) => {
+    if (!refreshToken) {
+      throw new Error("Token não fornecido");
+    }
+
+    try {
+      // Tenta deletar no banco
+      return await authRepository.deleteSession(refreshToken);
+    } catch (error) {
+      // Se o Prisma não achar a sessão (ex: token errado ou já deletado), ele joga um erro feio.
+      // Nós pegamos esse erro feio e jogamos um erro amigável para o Controller!
+      throw new Error("Sessão inválida ou já encerrada");
+    }
+  },
 };

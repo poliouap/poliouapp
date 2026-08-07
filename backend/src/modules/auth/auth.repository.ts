@@ -34,4 +34,12 @@ export const authRepository = {
       },
     });
   },
+
+  deleteSession: async (refreshToken: string) => {
+    return prisma.session.delete({
+      where : {
+        refreshToken: refreshToken
+      }
+    })
+  }
 };

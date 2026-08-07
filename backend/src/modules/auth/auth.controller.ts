@@ -42,4 +42,20 @@ export const authController = {
         .json({ error: "Dados inválidos no formulário", details: error });
     }
   },
+
+  logout: async (req: Request, res: Response) => {
+    try {
+      // 1. Pega o token cegamente do corpo da requisição (pode ser undefined)
+      const { refreshToken } = req.body;
+      
+      // 2. Manda para o Service (que tem a trava de segurança caso seja undefined)
+      await authService.logoutUser(refreshToken);
+
+      // 3. Se sobreviveu e o Prisma deletou, devolvemos sucesso!
+      return res.status(200).json({ message: "Logout realizado com sucesso" });
+    } catch (error: any) {
+      // 4. Captura o "throw new Error" do Service ou qualquer erro do Prisma
+      return res.status(400).json({ error: error.message });
+    }
+  },
 };
