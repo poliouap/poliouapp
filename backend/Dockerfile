@@ -12,7 +12,8 @@ RUN npm ci
 COPY . .
 
 # Generate Prisma client and build the app
-RUN npx prisma generate
+# Pass a dummy DATABASE_URL just so the generate command doesn't crash during the Docker build phase
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 RUN npm run build
 
 # Expose the port the backend runs on
