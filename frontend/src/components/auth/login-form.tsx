@@ -109,9 +109,13 @@ export function LoginForm() {
           </span>
         </label>
 
-        <Link href="/forgot-password" className="text-neutral-900 text-sm font-sans underline leading-5 hover:text-neutral-600 transition-colors">
-          Esqueci a senha
-        </Link>
+        <a 
+          href="#" 
+          onClick={(e) => { e.preventDefault(); alert("Funcionalidade de recuperar senha estará disponível em breve!"); }}
+          className="text-neutral-900 text-sm font-sans underline leading-5 hover:text-neutral-600 transition-colors"
+        >
+          Esqueceu a senha?
+        </a>
       </div>
 
       {/* Mensagens da API */}
