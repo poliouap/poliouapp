@@ -5,18 +5,23 @@ import { authService } from "./auth.service.js";
 
 export const authController = {
   register: async (req: Request, res: Response) => {
-    const dataUser = registerSchema.parse(req.body);
-    const userExists = await authRepository.findByEmail(dataUser.email);
+    try {
+      const dataUser = registerSchema.parse(req.body);
+      const userExists = await authRepository.findByEmail(dataUser.email);
 
-    if (userExists) {
-      return res.status(409).json({ error: "email alredy exists" });
-    }
+      if (userExists) {
+        return res.status(409).json({ error: "email alredy exists" });
+      }
 
-    if (!userExists) {
       await authService.registerUser(dataUser);
       return res
         .status(201)
         .json({ message: "User created successfully", data: {} });
+    } catch (error: any) {
+      console.error("[AUTH REGISTER ERROR]:", error);
+      return res
+        .status(400)
+        .json({ error: "Erro ao tentar registrar o usuário", details: error.message || error });
     }
   },
 
