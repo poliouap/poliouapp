@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json()); // Habilita o parse de JSON no body das requisições
 
 // Swagger Documentation
-const swaggerDocument = YAML.load(path.join(__dirname, '../../docs/swagger.yaml'));
+const swaggerDocument = YAML.load(path.join(__dirname, '../docs/swagger.yaml'));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health Check
