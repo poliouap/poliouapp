@@ -12,7 +12,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middlewares Globais
-app.use(cors());
+app.use(cors({
+  origin: "https://poliouapp-api.onrender.com",
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+}));
 app.use(express.json()); // Habilita o parse de JSON no body das requisições
 
 // Swagger Documentation
