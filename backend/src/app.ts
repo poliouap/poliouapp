@@ -13,7 +13,7 @@ const app = express();
 
 // Middlewares Globais
 app.use(cors({
-  origin: "https://poliouapp-api.onrender.com",
+  origin: "http://localhost:3000",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
 }));
 app.use(express.json()); // Habilita o parse de JSON no body das requisições
