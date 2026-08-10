@@ -13,8 +13,12 @@ const app = express();
 
 // Middlewares Globais
 app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  origin: [
+    "http://localhost:3000", 
+    "https://poliouapp.vercel.app"
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true
 }));
 app.use(express.json()); // Habilita o parse de JSON no body das requisições
 
