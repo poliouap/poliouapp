@@ -4,7 +4,9 @@ import type { LoginInput, RegisterInput } from "@/lib/validations/auth"
 export interface User {
   id: string
   name: string
-  email: string
+  email: string,
+  isPremium: boolean,
+  theme: string,
   // outros campos que o seu backend possa retornar (ex: role, createdAt, etc)
 }
 

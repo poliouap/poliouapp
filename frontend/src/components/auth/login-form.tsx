@@ -56,7 +56,7 @@ export function LoginForm() {
             id="email" 
             type="email" 
             placeholder="voce@exemplo.com"
-            className="w-full bg-transparent pb-3 pt-1 text-neutral-900 font-semibold text-base font-sans outline-none focus:border-neutral-900 transition-colors placeholder:font-normal placeholder:text-stone-600/60"
+            className="w-full bg-transparent pb-3 pt-1 text-stone-700 font-normal text-base font-sans outline-none focus:border-neutral-900 transition-colors placeholder:font-normal placeholder:text-stone-600/60"
             {...register("email")}
           />
         </div>
@@ -75,7 +75,7 @@ export function LoginForm() {
             id="password" 
             type={showPassword ? "text" : "password"} 
             placeholder="••••••••"
-            className="w-full bg-transparent pb-3 pt-1 text-neutral-900 font-semibold text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-10 placeholder:font-normal placeholder:text-stone-600/60"
+            className="w-full bg-transparent pb-3 pt-1 text-stone-700 font-normal text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-10 placeholder:font-normal placeholder:text-stone-600/60"
             {...register("password")}
           />
           <button

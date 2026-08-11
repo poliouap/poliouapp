@@ -70,7 +70,7 @@ export function RegisterForm() {
             id="name" 
             type="text" 
             placeholder="Luiz Carlos"
-            className="w-full bg-transparent pb-3 pt-1 text-neutral-900 font-semibold text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-8 placeholder:font-normal placeholder:text-stone-600/60"
+            className="w-full bg-transparent pb-3 pt-1 text-stone-700 font-normal text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-8 placeholder:font-normal placeholder:text-stone-600/60"
             {...register("name")}
           />
           {isValidField("name") && (
@@ -94,7 +94,7 @@ export function RegisterForm() {
             id="email" 
             type="email" 
             placeholder="voce@exemplo.com"
-            className="w-full bg-transparent pb-3 pt-1 text-neutral-900 font-semibold text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-8 placeholder:font-normal placeholder:text-stone-600/60"
+            className="w-full bg-transparent pb-3 pt-1 text-stone-700 font-normal text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-8 placeholder:font-normal placeholder:text-stone-600/60"
             {...register("email")}
           />
           {isValidField("email") && (
@@ -118,7 +118,7 @@ export function RegisterForm() {
             id="password" 
             type={showPassword ? "text" : "password"} 
             placeholder="Mínimo de 6 caracteres"
-            className="w-full bg-transparent pb-3 pt-1 text-neutral-900 font-semibold text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-16 placeholder:font-normal placeholder:text-stone-600/60"
+            className="w-full bg-transparent pb-3 pt-1 text-stone-700 font-normal text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-16 placeholder:font-normal placeholder:text-stone-600/60"
             {...register("password")}
           />
           <div className="absolute right-0 top-1 flex items-center gap-2">
@@ -151,7 +151,7 @@ export function RegisterForm() {
             id="confirmPassword" 
             type={showConfirmPassword ? "text" : "password"} 
             placeholder="Repita a sua senha"
-            className="w-full bg-transparent pb-3 pt-1 text-neutral-900 font-semibold text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-16 placeholder:font-normal placeholder:text-stone-600/60"
+            className="w-full bg-transparent pb-3 pt-1 text-stone-700 font-normal text-base font-sans outline-none focus:border-neutral-900 transition-colors pr-16 placeholder:font-normal placeholder:text-stone-600/60"
             {...register("confirmPassword")}
           />
           <div className="absolute right-0 top-1 flex items-center gap-2">
