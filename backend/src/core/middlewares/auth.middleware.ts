@@ -21,10 +21,11 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     throw new AppError("Erro de formatação do token", 401);
   }
 
-  const token = parts[1];
+  const token: any = parts[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET as string) as { id: string };
+    const secret = process.env.JWT_ACCESS_SECRET || "";
+    const decoded = jwt.verify(token, secret) as unknown as { id: string };
     
     // Injeta o ID do usuário na requisição
     req.user = { id: decoded.id };
