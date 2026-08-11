@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react"
 import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth"
 import { authService } from "@/services/auth.service"
@@ -19,6 +20,7 @@ export function RegisterForm() {
 
   const [apiError, setApiError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const router = useRouter()
 
   const {
     register,
@@ -26,7 +28,7 @@ export function RegisterForm() {
     formState: { errors, dirtyFields, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    mode: "onChange", // Valida em tempo real enquanto o usuário digita
+    mode: "onChange",
     defaultValues: {
       name: "",
       email: "",
@@ -39,13 +41,11 @@ export function RegisterForm() {
     setApiError(null)
     setSuccess(false)
     try {
-      const response = await authService.register(data)
+      await authService.register(data)
       setSuccess(true)
-      console.log("Cadastro com sucesso!", response.message)
       
-      // Simulação temporária de redirecionamento visual
       setTimeout(() => {
-        window.location.href = "/login"
+        router.push("/login")
       }, 1500)
     } catch (error: any) {
       setApiError(error.message || "Ocorreu um erro ao tentar criar a conta.")

@@ -34,6 +34,11 @@ app.get('/health', (req, res) => {
 // AQUI VOCÊ VAI IMPORTAR SUAS ROTAS MODULARES DEPOIS!
 // Exemplo: app.use('/api/auth', authRoutes);
 
+import { errorMiddleware } from './core/middlewares/error.middleware.js';
+
 app.use('/api/auth', authRouter);
+
+// Middleware global de tratamento de erros SEMPRE por último!
+app.use(errorMiddleware as any);
 
 export default app;

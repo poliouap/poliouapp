@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Providers } from "./providers";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
@@ -25,7 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${inter.variable} ${cormorantGaramond.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-orange-50">{children}</body>
+      <body className="min-h-full flex flex-col bg-orange-50">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

@@ -1,17 +1,18 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema, type LoginInput } from "@/lib/validations/auth"
-import { authService } from "@/services/auth.service"
+import { Eye, EyeOff } from "lucide-react"
+import { useAuth } from "@/contexts/auth.context"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
-
   const [apiError, setApiError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  
+  const { signIn } = useAuth()
 
   const {
     register,
@@ -25,19 +26,10 @@ export function LoginForm() {
     },
   })
 
-  const onSubmit = async (data: LoginInput) => {
+  async function onSubmit(data: LoginInput) {
     setApiError(null)
-    setSuccess(false)
     try {
-      const response = await authService.login(data)
-      setSuccess(true)
-      // Aqui no futuro vamos chamar o AuthContext para salvar o token e redirecionar
-      console.log("Login com sucesso! Token:", response.accessToken)
-      
-      // Simulação temporária de redirecionamento visual
-      setTimeout(() => {
-        window.location.href = "/dashboard"
-      }, 1000)
+      await signIn(data)
     } catch (error: any) {
       setApiError(error.message || "Ocorreu um erro ao tentar fazer login.")
     }
@@ -124,16 +116,11 @@ export function LoginForm() {
           <p className="text-red-600 text-sm font-sans">{apiError}</p>
         </div>
       )}
-      {success && (
-        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-green-700 text-sm font-sans">Login realizado com sucesso! Redirecionando...</p>
-        </div>
-      )}
 
       {/* Botão Entrar */}
       <button 
         type="submit" 
-        disabled={isSubmitting || success}
+        disabled={isSubmitting}
         className="w-full h-11 bg-neutral-900 rounded-full flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span className="text-orange-50 text-sm font-medium font-sans leading-5 tracking-tight">
