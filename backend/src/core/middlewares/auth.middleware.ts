@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { AppError } from "../errors/AppError.js";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -11,13 +12,13 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ error: "Token não fornecido" });
+    throw new AppError("Token não fornecido", 401);
   }
 
   const parts = authHeader.split(" ");
   
   if (parts.length !== 2 || parts[0] !== "Bearer") {
-    return res.status(401).json({ error: "Erro de formatação do token" });
+    throw new AppError("Erro de formatação do token", 401);
   }
 
   const token = parts[1];
@@ -30,6 +31,6 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     
     return next();
   } catch (error) {
-    return res.status(401).json({ error: "Token inválido ou expirado" });
+    throw new AppError("Token inválido ou expirado", 401);
   }
 };

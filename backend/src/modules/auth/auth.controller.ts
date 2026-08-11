@@ -3,86 +3,62 @@ import type { AuthRequest } from "../../core/middlewares/auth.middleware.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
 import { authRepository } from "./auth.repository.js";
 import { authService } from "./auth.service.js";
+import { AppError } from "../../core/errors/AppError.js";
+import { ApiResponse } from "../../core/utils/ApiResponse.js";
 
 export const authController = {
   register: async (req: Request, res: Response) => {
-    try {
-      const dataUser = registerSchema.parse(req.body);
-      const userExists = await authRepository.findByEmail(dataUser.email);
+    const dataUser = registerSchema.parse(req.body);
+    const userExists = await authRepository.findByEmail(dataUser.email);
 
-      if (userExists) {
-        return res.status(409).json({ error: "email alredy exists" });
-      }
-
-      await authService.registerUser(dataUser);
-      return res
-        .status(201)
-        .json({ message: "User created successfully", data: {} });
-    } catch (error: any) {
-      console.error("[AUTH REGISTER ERROR]:", error);
-      return res
-        .status(400)
-        .json({ error: "Erro ao tentar registrar o usuário", details: error.message || error });
+    if (userExists) {
+      throw new AppError("email alredy exists", 409);
     }
+
+    await authService.registerUser(dataUser);
+    
+    return res.status(201).json(new ApiResponse({}, "User created successfully"));
   },
 
   login: async (req: Request, res: Response) => {
+    const dataUser = loginSchema.parse(req.body);
+    
     try {
-      const dataUser = loginSchema.parse(req.body);
       const tokens = await authService.loginUser(dataUser);
-
       if (tokens) {
-        return res.status(200).json({
-          message: "Login successful",
+        return res.status(200).json(new ApiResponse({
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
           user: tokens.user,
-        });
+        }, "Login successful"));
       }
     } catch (error: any) {
       if (error.message === "Credenciais inválidas") {
-        return res.status(401).json({ error: "Credenciais inválidas" });
+        throw new AppError("Credenciais inválidas", 401);
       }
-      return res
-        .status(400)
-        .json({ error: "Dados inválidos no formulário", details: error });
+      throw error;
     }
   },
 
   logout: async (req: Request, res: Response) => {
-    try {
-      // 1. Pega o token cegamente do corpo da requisição (pode ser undefined)
-      const { refreshToken } = req.body;
-      
-      // 2. Manda para o Service (que tem a trava de segurança caso seja undefined)
-      await authService.logoutUser(refreshToken);
-
-      // 3. Se sobreviveu e o Prisma deletou, devolvemos sucesso!
-      return res.status(200).json({ message: "Logout realizado com sucesso" });
-    } catch (error: any) {
-      // 4. Captura o "throw new Error" do Service ou qualquer erro do Prisma
-      return res.status(400).json({ error: error.message });
-    }
+    const { refreshToken } = req.body;
+    await authService.logoutUser(refreshToken);
+    return res.status(200).json(new ApiResponse({}, "Logout realizado com sucesso"));
   },
 
   me: async (req: AuthRequest, res: Response) => {
-    try {
-      const userId = req.user?.id;
-      
-      if (!userId) {
-        return res.status(401).json({ error: "Usuário não identificado pelo token" });
-      }
-
-      const user = await authRepository.findById(userId);
-
-      if (!user) {
-        return res.status(404).json({ error: "Usuário não encontrado" });
-      }
-
-      return res.status(200).json({ user });
-    } catch (error: any) {
-      console.error("[AUTH ME ERROR]:", error);
-      return res.status(500).json({ error: "Erro ao buscar os dados do usuário" });
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      throw new AppError("Usuário não identificado pelo token", 401);
     }
+
+    const user = await authRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError("Usuário não encontrado", 404);
+    }
+
+    return res.status(200).json(new ApiResponse({ user }));
   },
 };
