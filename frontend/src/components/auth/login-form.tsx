@@ -120,7 +120,7 @@ export function LoginForm() {
       {/* Botão Entrar */}
       <button 
         type="submit" 
-        disabled={isSubmitting || success}
+        disabled={isSubmitting}
         className="w-full h-11 bg-neutral-900 rounded-full flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span className="text-orange-50 text-sm font-medium font-sans leading-5 tracking-tight">
