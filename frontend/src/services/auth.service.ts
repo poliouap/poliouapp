@@ -1,34 +1,32 @@
-import { fetchApi, ApiError } from "@/lib/api"
+import { fetchApi } from "@/lib/api"
 import type { LoginInput, RegisterInput } from "@/lib/validations/auth"
 
 export interface User {
   id: string
   name: string
-  email: string,
-  isPremium: boolean,
-  theme: string,
-  // outros campos que o seu backend possa retornar (ex: role, createdAt, etc)
+  email: string
 }
 
-export interface LoginResponse {
-  message: string
+// O novo padrão da sua API do Backend
+export interface ApiResponse<T> {
+  success: boolean
+  message?: string
+  data?: T
+}
+
+export interface LoginData {
   accessToken: string
   refreshToken?: string
   user: User
 }
 
-export interface RegisterResponse {
-  message: string
-  data: User
-}
-
 export const authService = {
   /**
    * Realiza o login do usuário na API
-   * POST /auth/login
+   * POST /api/auth/login
    */
-  async login(data: LoginInput): Promise<LoginResponse> {
-    return fetchApi<LoginResponse>("/api/auth/login", {
+  async login(data: LoginInput): Promise<ApiResponse<LoginData>> {
+    return fetchApi<ApiResponse<LoginData>>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(data),
     })
@@ -38,10 +36,20 @@ export const authService = {
    * Registra um novo usuário na API
    * POST /api/auth/register
    */
-  async register(data: RegisterInput): Promise<RegisterResponse> {
-    return fetchApi<RegisterResponse>("/api/auth/register", {
+  async register(data: RegisterInput): Promise<ApiResponse<void>> {
+    return fetchApi<ApiResponse<void>>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     })
   },
+
+  /**
+   * Busca os dados do usuário usando o Token que está nos Cookies
+   * GET /api/auth/me
+   */
+  async getMe(): Promise<ApiResponse<{ user: User }>> {
+    return fetchApi<ApiResponse<{ user: User }>>("/api/auth/me", {
+      method: "GET",
+    })
+  }
 }
