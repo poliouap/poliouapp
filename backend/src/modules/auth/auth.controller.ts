@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { AuthRequest } from "../../core/middlewares/auth.middleware.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
 import { authRepository } from "./auth.repository.js";
 import { authService } from "./auth.service.js";
@@ -61,6 +62,27 @@ export const authController = {
     } catch (error: any) {
       // 4. Captura o "throw new Error" do Service ou qualquer erro do Prisma
       return res.status(400).json({ error: error.message });
+    }
+  },
+
+  me: async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Usuário não identificado pelo token" });
+      }
+
+      const user = await authRepository.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      return res.status(200).json({ user });
+    } catch (error: any) {
+      console.error("[AUTH ME ERROR]:", error);
+      return res.status(500).json({ error: "Erro ao buscar os dados do usuário" });
     }
   },
 };

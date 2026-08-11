@@ -7,6 +7,17 @@ export const authRepository = {
     });
   },
 
+  findById: async (id: string) => {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    });
+  },
+
   createUser: async (data: {
     name: string;
     email: string;
