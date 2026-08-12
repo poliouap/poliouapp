@@ -1,5 +1,3 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
-
 export class ApiError extends Error {
   public status: number
   public details?: any
@@ -13,7 +11,8 @@ export class ApiError extends Error {
 }
 
 export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`
+  // Agora o endpoint é relativo (ex: "/api/auth/login") — mesmo domínio do Next.js
+  const url = endpoint
   
   const defaultHeaders: HeadersInit = {
     "Content-Type": "application/json",
@@ -21,7 +20,6 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
 
   const config: RequestInit = {
     ...options,
-    credentials: "include", // Envia os cookies HttpOnly em TODAS as requisições
     headers: {
       ...defaultHeaders,
       ...options.headers,
