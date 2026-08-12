@@ -2,8 +2,8 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function routeGuardMiddleware(request: NextRequest) {
-  // Pega o token direto do cookie nativo do Next.js Request
-  const token = request.cookies.get("poliouapp.token")?.value
+  // Pega o token direto do cookie HttpOnly gerado pelo backend (agora se chama accessToken ou refreshToken)
+  const token = request.cookies.get("accessToken")?.value || request.cookies.get("refreshToken")?.value
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/register")
   const isDashboardPage = request.nextUrl.pathname.startsWith("/dashboard")
