@@ -62,6 +62,45 @@ paths:
         '401':
           description: Unauthorized (invalid email or password)
 
+  /users/profile:
+    get:
+      summary: Get logged user profile
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+    put:
+      summary: Update user profile (name, avatarUrl, themePreference)
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+
+
 components:
   schemas:
     User:
@@ -83,10 +122,32 @@ components:
           type: string
           format: email
           example: 'luiz@example.com'
+        avatarUrl:
+          type: string
+          nullable: true
+          example: 'https://example.com/avatar.png'
+        themePreference:
+          type: string
+          example: 'dark'
         createdAt:
           type: string
           format: date-time
           example: '2026-07-29T15:00:00Z'
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Luiz'
+        avatarUrl:
+          type: string
+          nullable: true
+          example: 'https://example.com/avatar.png'
+        themePreference:
+          type: string
+          enum: [light, dark, system]
+          example: 'dark'
 
     RegisterRequest:
       type: object
@@ -150,3 +211,4 @@ components:
         error:
           type: string
           example: 'Descrição clara do erro ocorrido'
+

@@ -63,6 +63,8 @@ export const authService = {
         id: user.id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl,
+        themePreference: user.themePreference,
       },
     };
   },
@@ -82,3 +84,5 @@ export const authService = {
     }
   },
 };
+
+

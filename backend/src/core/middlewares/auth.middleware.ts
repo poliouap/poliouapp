@@ -25,10 +25,10 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
   try {
     const secret = process.env.JWT_ACCESS_SECRET || "";
-    const decoded = jwt.verify(token, secret) as unknown as { id: string };
+    const decoded = jwt.verify(token, secret) as unknown as { userId: string };
     
     // Injeta o ID do usuário na requisição
-    req.user = { id: decoded.id };
+    req.user = { id: decoded.userId };
     
     return next();
   } catch (error) {

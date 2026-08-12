@@ -13,7 +13,9 @@ export const authRepository = {
       select: {
         id: true,
         name: true,
-        email: true
+        email: true,
+        avatarUrl: true,
+        themePreference: true
       }
     });
   },
@@ -54,3 +56,7 @@ export const authRepository = {
     })
   }
 };
+
+
+
+

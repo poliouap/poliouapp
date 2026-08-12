@@ -5,6 +5,7 @@ import YAML from 'yamljs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { authRouter } from './modules/auth/auth.router.js';
+import { userRouter } from './modules/user/user.router.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,14 +32,13 @@ app.get('/health', (req, res) => {
   res.status(200).send('API está funcionando perfeitamente!');
 });
 
-// AQUI VOCÊ VAI IMPORTAR SUAS ROTAS MODULARES DEPOIS!
-// Exemplo: app.use('/api/auth', authRoutes);
-
 import { errorMiddleware } from './core/middlewares/error.middleware.js';
 
 app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
 
 // Middleware global de tratamento de erros SEMPRE por último!
 app.use(errorMiddleware as any);
+
 
 export default app;
