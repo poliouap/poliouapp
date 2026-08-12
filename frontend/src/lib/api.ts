@@ -1,5 +1,3 @@
-import Cookies from "js-cookie"
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
 export class ApiError extends Error {
@@ -21,14 +19,9 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
     "Content-Type": "application/json",
   }
 
-  // Lê o cookie usando o js-cookie
-  const token = Cookies.get("poliouapp.token")
-  if (token) { 
-    defaultHeaders["Authorization"] = `Bearer ${token}` 
-  }
-
   const config: RequestInit = {
     ...options,
+    credentials: "include", // Envia os cookies HttpOnly em TODAS as requisições
     headers: {
       ...defaultHeaders,
       ...options.headers,

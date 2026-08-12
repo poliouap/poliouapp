@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import Cookies from "js-cookie"
 import { authService, User } from "@/services/auth.service"
 import type { LoginInput } from "@/lib/validations/auth"
 
@@ -11,7 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   signIn: (data: LoginInput) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
@@ -22,50 +21,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Ao iniciar o app, verifica se tem cookie e busca os dados do usuário do backend
-    async function loadUserFromToken() {
-      const token = Cookies.get("poliouapp.token")
-      
-      if (token) {
-        try {
-          const res = await authService.getMe()
-          if (res.success && res.data) {
-            setUser(res.data.user)
-          }
-        } catch (error) {
-          // Token inválido ou expirado
-          Cookies.remove("poliouapp.token")
-          setUser(null)
+    // Ao iniciar o app, o backend já vai ler o cookie HttpOnly e retornar o usuário, se houver.
+    async function loadUser() {
+      try {
+        const res = await authService.getMe()
+        if (res.success && res.data) {
+          setUser(res.data.user)
         }
+      } catch (error) {
+        // Cookie não existe, inválido ou expirado. Não fazemos nada.
+        setUser(null)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
-    loadUserFromToken()
+    loadUser()
   }, [])
 
   async function signIn(data: LoginInput) {
     const res = await authService.login(data)
     
     if (res.success && res.data) {
-      // Salva o token no Cookie
-      Cookies.set("poliouapp.token", res.data.accessToken, {
-        expires: 7, // 7 dias
-        path: "/",
-      })
-
-      // Salva o usuário no estado local
+      // O backend já gravou os cookies HttpOnly na resposta com sucesso!
+      // Nós apenas salvamos o usuário no estado local
       setUser(res.data.user)
 
-      // Redireciona para o dashboard de forma nativa e sem piscar tela
+      // Redireciona para o dashboard
       router.push("/dashboard")
     }
   }
 
-  function logout() {
-    Cookies.remove("poliouapp.token")
-    setUser(null)
-    router.push("/login")
+  async function logout() {
+    try {
+      // O fetchApi enviará o cookie e o backend limpará a sessão e os cookies
+      await authService.logout()
+    } catch (error) {
+      console.error("Erro ao fazer logout no backend", error)
+    } finally {
+      setUser(null)
+      router.push("/login")
+    }
   }
 
   return (

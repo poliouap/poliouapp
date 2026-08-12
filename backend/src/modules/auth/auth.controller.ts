@@ -26,9 +26,24 @@ export const authController = {
     try {
       const tokens = await authService.loginUser(dataUser);
       if (tokens) {
+        // Envia os tokens via HttpOnly Cookies para maior segurança (evita XSS)
+        const isProduction = process.env.NODE_ENV === "production";
+        
+        res.cookie("accessToken", tokens.accessToken, {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax", // Ou "none" se o frontend e backend estiverem em domínios diferentes
+          maxAge: 15 * 60 * 1000, // 15 minutos
+        });
+
+        res.cookie("refreshToken", tokens.refreshToken, {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+        });
+
         return res.status(200).json(new ApiResponse({
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
           user: tokens.user,
         }, "Login successful"));
       }
@@ -41,8 +56,17 @@ export const authController = {
   },
 
   logout: async (req: Request, res: Response) => {
-    const { refreshToken } = req.body;
-    await authService.logoutUser(refreshToken);
+    // Agora o refreshToken vem do cookie HttpOnly de forma automática
+    const refreshToken = req.cookies?.refreshToken;
+    
+    if (refreshToken) {
+      await authService.logoutUser(refreshToken);
+    }
+
+    // Apaga os cookies blindados
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
     return res.status(200).json(new ApiResponse({}, "Logout realizado com sucesso"));
   },
 

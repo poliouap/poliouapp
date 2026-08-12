@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
@@ -22,6 +23,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json()); // Habilita o parse de JSON no body das requisições
+app.use(cookieParser()); // Habilita a leitura de cookies nas requisições
 
 // Swagger Documentation
 const swaggerDocument = YAML.load(path.join(__dirname, '../docs/swagger.yaml'));

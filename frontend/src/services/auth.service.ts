@@ -5,6 +5,8 @@ export interface User {
   id: string
   name: string
   email: string
+  avatarUrl?: string | null
+  themePreference?: "light" | "dark" | "system"
 }
 
 // O novo padrão da sua API do Backend
@@ -15,8 +17,6 @@ export interface ApiResponse<T> {
 }
 
 export interface LoginData {
-  accessToken: string
-  refreshToken?: string
   user: User
 }
 
@@ -44,12 +44,22 @@ export const authService = {
   },
 
   /**
-   * Busca os dados do usuário usando o Token que está nos Cookies
+   * Busca os dados do usuário usando os cookies HttpOnly
    * GET /api/auth/me
    */
   async getMe(): Promise<ApiResponse<{ user: User }>> {
     return fetchApi<ApiResponse<{ user: User }>>("/api/auth/me", {
       method: "GET",
+    })
+  },
+
+  /**
+   * Realiza o logout do usuário (Limpa cookies e sessão no backend)
+   * POST /api/auth/logout
+   */
+  async logout(): Promise<ApiResponse<void>> {
+    return fetchApi<ApiResponse<void>>("/api/auth/logout", {
+      method: "POST",
     })
   }
 }
