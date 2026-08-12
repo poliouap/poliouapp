@@ -34,6 +34,7 @@ export const authController = {
           secure: isProduction,
           sameSite: "lax", // Ou "none" se o frontend e backend estiverem em domínios diferentes
           maxAge: 15 * 60 * 1000, // 15 minutos
+          path: "/", // Garante que o cookie valha para o domínio todo
         });
 
         res.cookie("refreshToken", tokens.refreshToken, {
@@ -41,7 +42,10 @@ export const authController = {
           secure: isProduction,
           sameSite: "lax",
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+          path: "/",
         });
+
+        console.log("Cookies set: ", tokens.accessToken ? "Yes" : "No");
 
         return res.status(200).json(new ApiResponse({
           user: tokens.user,
