@@ -19,8 +19,16 @@ export default function SettingsPage() {
   const [name, setName] = React.useState(user?.name || "");
   
   const [isSaving, setIsSaving] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
+  const [pendingAvatarFile, setPendingAvatarFile] = React.useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup preview URL on unmount or when file changes
+  React.useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
 
   // Sync state when user loads
   React.useEffect(() => {
@@ -41,10 +49,24 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     try {
       setIsSaving(true);
-      // Valida os dados no Zod antes de disparar o fetch!
+
+      // 1. Se tem avatar pendente, faz upload primeiro
+      if (pendingAvatarFile) {
+        avatarSchema.parse({ file: pendingAvatarFile });
+        const uploadRes = await userService.uploadAvatar(pendingAvatarFile);
+        if (uploadRes.success && uploadRes.data) {
+          updateUser(uploadRes.data.user);
+        }
+        setPendingAvatarFile(null);
+        if (avatarPreview) {
+          URL.revokeObjectURL(avatarPreview);
+          setAvatarPreview(null);
+        }
+      }
+
+      // 2. Salva nome
       const validatedData = updateProfileSchema.parse({
         name,
-        themePreference: selectedTheme,
       });
 
       const res = await userService.updateProfile(validatedData);
@@ -76,28 +98,25 @@ export default function SettingsPage() {
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      setIsUploading(true);
-      
-      // Validações no Zod para limite de tamanho e formato!
+      // Valida formato e tamanho antes de aceitar
       avatarSchema.parse({ file });
 
-      const res = await userService.uploadAvatar(file);
-      if (res.success && res.data) {
-        updateUser(res.data.user);
-      }
+      // Armazena o arquivo pendente e gera preview local
+      setPendingAvatarFile(file);
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+      setAvatarPreview(URL.createObjectURL(file));
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         alert(error.issues[0].message);
       } else {
-        alert(`Erro ao fazer upload da imagem: ${error.message}`);
+        alert(`Erro ao selecionar imagem: ${error.message}`);
       }
     } finally {
-      setIsUploading(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -160,8 +179,14 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 mt-6 sm:mt-8">
               {/* Avatar */}
               <div className="relative shrink-0">
-                <div className={`w-24 h-24 rounded-full outline outline-2 outline-stone-300 overflow-hidden flex items-center justify-center ${isUploading ? "opacity-50" : ""}`}>
-                  {user?.avatarUrl ? (
+                <div className="w-24 h-24 rounded-full outline outline-2 outline-stone-300 overflow-hidden flex items-center justify-center">
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Preview do avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
                       alt="Avatar"
@@ -189,27 +214,27 @@ export default function SettingsPage() {
                 <button
                   id="btn-change-avatar"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center outline outline-1 outline-stone-300 shadow-sm hover:bg-stone-50 transition-colors disabled:cursor-not-allowed"
+                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center outline outline-1 outline-stone-300 shadow-sm hover:bg-stone-50 transition-colors"
                   title="Alterar avatar"
                 >
-                  {isUploading ? (
-                    <span className="w-4 h-4 border-2 border-stone-600 border-t-transparent rounded-full animate-spin"></span>
-                  ) : (
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      className="text-stone-600"
-                    >
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                      <circle cx="12" cy="13" r="4" />
-                    </svg>
-                  )}
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    className="text-stone-600"
+                  >
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
                 </button>
+
+                {/* Format hint */}
+                <p className="text-xs text-stone-500 mt-2 text-center">
+                  JPG, PNG ou WebP · Máx. 5MB
+                </p>
               </div>
 
               {/* Name field + save */}
