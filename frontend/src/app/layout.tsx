@@ -38,16 +38,23 @@ export default async function RootLayout({
   if (token) {
     try {
       const apiUrl = process.env.API_URL || "http://localhost:5000";
+
+      // Repassa TODOS os cookies do request para o backend (accessToken + refreshToken)
+      const allCookies = cookieStore.getAll()
+        .map(c => `${c.name}=${c.value}`)
+        .join("; ");
+
       const res = await fetch(`${apiUrl}/api/auth/me`, {
         headers: {
-          Cookie: `accessToken=${token}`, // Repassa o token para o backend
+          Cookie: allCookies,
         },
-        cache: 'no-store' // Sempre busca do servidor
+        cache: 'no-store'
       });
       
       if (res.ok) {
         const data = await res.json();
-        initialUser = data.user;
+        // A API retorna { success: true, data: { user: {...} } }
+        initialUser = data.data?.user ?? null;
       }
     } catch (e) {
       console.error("Failed to fetch initial user SSR", e);
