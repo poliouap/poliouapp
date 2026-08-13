@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth.context";
 
 const navItems = [
@@ -105,18 +105,10 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-
-  // Route Guard exclusivo para rotas dentro do (dashboard)
-  React.useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [isLoading, user, router]);
 
   // Close mobile menu on route change
   React.useEffect(() => {
@@ -135,11 +127,10 @@ export default function DashboardLayout({
         <Wrapper
           key={item.name}
           href={item.href}
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-colors ${
-            isActive
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-colors ${isActive
               ? "bg-stone-200 text-neutral-900"
               : "text-stone-600 hover:bg-stone-200/50 hover:text-neutral-900"
-          }`}
+            }`}
         >
           <div className="w-4 h-4 flex items-center justify-center">
             <svg
@@ -224,9 +215,8 @@ export default function DashboardLayout({
 
       {/* ===== Mobile Drawer ===== */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-stone-300/70 flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-stone-300/70 flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:hidden ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Drawer Top */}
         <div className="p-5 flex flex-col gap-8">
@@ -301,13 +291,13 @@ export default function DashboardLayout({
               Tem certeza que deseja encerrar sua sessão atual? Você precisará fazer login novamente para acessar seu painel.
             </p>
             <div className="flex gap-3 justify-end">
-              <button 
+              <button
                 onClick={() => setIsLogoutModalOpen(false)}
                 className="px-4 py-2 rounded-xl text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 transition-colors"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setIsLogoutModalOpen(false);
                   logout();

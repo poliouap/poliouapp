@@ -17,25 +17,46 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("@poliou:user")
+      if (cached) {
+        try {
+          return JSON.parse(cached)
+        } catch {
+          return null
+        }
+      }
+    }
+    return null
+  })
+  
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   const updateUser = (updatedData: Partial<User>) => {
-    setUser((prev) => (prev ? { ...prev, ...updatedData } : null))
+    setUser((prev) => {
+      const newUser = prev ? { ...prev, ...updatedData } : null
+      if (newUser && typeof window !== "undefined") {
+        localStorage.setItem("@poliou:user", JSON.stringify(newUser))
+      }
+      return newUser
+    })
   }
 
   useEffect(() => {
-    // Ao iniciar o app, o backend já vai ler o cookie HttpOnly e retornar o usuário, se houver.
+    // Ao iniciar o app, o backend já vai ler o cookie HttpOnly e retornar o usuário real, se houver.
     async function loadUser() {
       try {
         const res = await authService.getMe()
         if (res.success && res.data) {
           setUser(res.data.user)
+          localStorage.setItem("@poliou:user", JSON.stringify(res.data.user))
         }
       } catch (error) {
-        // Cookie não existe, inválido ou expirado.
+        // Cookie não existe, inválido ou expirado. Remove o cache.
         setUser(null)
+        localStorage.removeItem("@poliou:user")
       } finally {
         setIsLoading(false)
       }
@@ -47,11 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(data: LoginInput) {
     const res = await authService.login(data)
-    
+
     if (res.success && res.data) {
       // O backend já gravou os cookies HttpOnly na resposta com sucesso!
       // Nós apenas salvamos o usuário no estado local
       setUser(res.data.user)
+      localStorage.setItem("@poliou:user", JSON.stringify(res.data.user))
 
       // Redireciona para o dashboard
       router.push("/dashboard")
@@ -66,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Erro ao fazer logout no backend", error)
     } finally {
       setUser(null)
+      localStorage.removeItem("@poliou:user")
       router.push("/login")
     }
   }
