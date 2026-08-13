@@ -3,9 +3,17 @@
 import { ReactNode } from "react"
 import { AuthProvider } from "@/contexts/auth.context"
 
-export function Providers({ children }: { children: ReactNode }) {
+import { User } from "@/services/auth.service"
+
+export function Providers({ 
+  children, 
+  initialUser 
+}: { 
+  children: ReactNode;
+  initialUser: User | null;
+}) {
   return (
-    <AuthProvider>
+    <AuthProvider initialUser={initialUser}>
       {children}
     </AuthProvider>
   )

@@ -16,53 +16,32 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("@poliou:user")
-      if (cached) {
-        try {
-          return JSON.parse(cached)
-        } catch {
-          return null
-        }
-      }
-    }
-    return null
-  })
+export function AuthProvider({ 
+  children,
+  initialUser 
+}: { 
+  children: ReactNode;
+  initialUser: User | null;
+}) {
+  // Inicializa o estado diretamente com o usuário que o servidor Next.js mandou!
+  // Zero "Flicker", zero delays.
+  const [user, setUser] = useState<User | null>(initialUser)
   
-  const [isLoading, setIsLoading] = useState(true)
+  // Como o servidor já decidiu quem é o usuário, não precisamos iniciar em "loading"
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const updateUser = (updatedData: Partial<User>) => {
     setUser((prev) => {
       const newUser = prev ? { ...prev, ...updatedData } : null
-      if (newUser && typeof window !== "undefined") {
-        localStorage.setItem("@poliou:user", JSON.stringify(newUser))
-      }
       return newUser
     })
   }
 
   useEffect(() => {
-    // Ao iniciar o app, o backend já vai ler o cookie HttpOnly e retornar o usuário real, se houver.
-    async function loadUser() {
-      try {
-        const res = await authService.getMe()
-        if (res.success && res.data) {
-          setUser(res.data.user)
-          localStorage.setItem("@poliou:user", JSON.stringify(res.data.user))
-        }
-      } catch (error) {
-        // Cookie não existe, inválido ou expirado. Remove o cache.
-        setUser(null)
-        localStorage.removeItem("@poliou:user")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadUser()
+    // Como a checagem principal de sessão foi para o Servidor (SSR),
+    // nós não precisamos mais disparar o getMe() imediatamente no carregamento da tela.
+    // Você pode usar este hook futuramente para polling ou background refresh se quiser.
   }, [])
 
 
@@ -71,9 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (res.success && res.data) {
       // O backend já gravou os cookies HttpOnly na resposta com sucesso!
-      // Nós apenas salvamos o usuário no estado local
       setUser(res.data.user)
-      localStorage.setItem("@poliou:user", JSON.stringify(res.data.user))
 
       // Redireciona para o dashboard
       router.push("/dashboard")
@@ -88,7 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Erro ao fazer logout no backend", error)
     } finally {
       setUser(null)
-      localStorage.removeItem("@poliou:user")
       router.push("/login")
     }
   }
