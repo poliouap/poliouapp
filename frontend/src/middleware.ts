@@ -9,5 +9,5 @@ export function middleware(request: NextRequest) {
 
 // Configura quais rotas o middleware deve monitorar
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/register"],
+  matcher: ["/dashboard/:path*", "/settings/:path*", "/login", "/register"],
 }

@@ -6,7 +6,7 @@ export function routeGuardMiddleware(request: NextRequest) {
   const token = request.cookies.get("accessToken")?.value || request.cookies.get("refreshToken")?.value
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/register")
-  const isDashboardPage = request.nextUrl.pathname.startsWith("/dashboard")
+  const isDashboardPage = request.nextUrl.pathname.startsWith("/dashboard") || request.nextUrl.pathname.startsWith("/settings")
 
   // Se o usuário não tem token e tenta acessar página privada, manda pro login
   if (!token && isDashboardPage) {
