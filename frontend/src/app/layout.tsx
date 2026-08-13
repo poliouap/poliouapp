@@ -24,15 +24,40 @@ export const metadata: Metadata = {
   description: "Seu diário e planejamento pessoal em formato tátil.",
 };
 
-export default function RootLayout({
+import { cookies } from "next/headers";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken")?.value || cookieStore.get("refreshToken")?.value;
+  let initialUser = null;
+
+  if (token) {
+    try {
+      const apiUrl = process.env.API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/auth/me`, {
+        headers: {
+          Cookie: `accessToken=${token}`, // Repassa o token para o backend
+        },
+        cache: 'no-store' // Sempre busca do servidor
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        initialUser = data.user;
+      }
+    } catch (e) {
+      console.error("Failed to fetch initial user SSR", e);
+    }
+  }
+
   return (
     <html lang="pt-BR" className={`${inter.variable} ${cormorantGaramond.variable} ${outfit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-orange-50">
-        <Providers>
+        <Providers initialUser={initialUser}>
           {children}
         </Providers>
       </body>
