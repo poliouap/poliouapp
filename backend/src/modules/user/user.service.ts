@@ -15,10 +15,26 @@ export const userService = {
   },
 
   uploadAvatar: async (userId: string, file: Express.Multer.File) => {
+    const { supabase } = await import("../../core/config/supabase.js");
+    
+    // 1. Busca o usuário para ver se ele já tem uma foto antiga
+    const user = await userRepository.findById(userId);
+    
+    if (user?.avatarUrl) {
+      // Extrai o nome do arquivo da URL antiga (ex: "https://.../avatars/123-17123.jpg" -> "123-17123.jpg")
+      const oldFileName = user.avatarUrl.split("/").pop();
+      
+      if (oldFileName) {
+        // 2. Deleta a foto antiga do storage
+        await supabase.storage.from("avatars").remove([oldFileName]);
+      }
+    }
+
+    // 3. Prepara o nome do novo arquivo (nome único para evitar cache no navegador)
     const fileExtension = file.originalname.split(".").pop();
     const fileName = `${userId}-${Date.now()}.${fileExtension}`;
 
-    const { supabase } = await import("../../core/config/supabase.js");
+    // 4. Faz o upload da nova foto
     const { data, error } = await supabase.storage
       .from("avatars")
       .upload(fileName, file.buffer, {
