@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth.context";
 
 const navItems = [
@@ -105,10 +105,18 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Route Guard exclusivo para rotas dentro do (dashboard)
+  React.useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [isLoading, user, router]);
 
   // Close mobile menu on route change
   React.useEffect(() => {

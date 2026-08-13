@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(res.data.user)
         }
       } catch (error) {
-        // Cookie não existe, inválido ou expirado. Não fazemos nada.
+        // Cookie não existe, inválido ou expirado.
         setUser(null)
       } finally {
         setIsLoading(false)
@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     loadUser()
   }, [])
+
 
   async function signIn(data: LoginInput) {
     const res = await authService.login(data)

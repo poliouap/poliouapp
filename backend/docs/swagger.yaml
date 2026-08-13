@@ -62,6 +62,40 @@ paths:
         '401':
           description: Unauthorized (invalid email or password)
 
+  /auth/logout:
+    post:
+      summary: Logout a user and clear the token
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Logout successful, cookies cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Logout realizado com sucesso'
+
+  /auth/me:
+    get:
+      summary: Get the currently authenticated user
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authenticated user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized (Invalid or missing token)
+
   /users/profile:
     get:
       summary: Get logged user profile
