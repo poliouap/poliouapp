@@ -81,11 +81,9 @@ export async function proxyFormDataToBackend(
     headers["Cookie"] = cookieHeader
   }
 
-  // Repassa os headers de content-type originais do FormData que incluem o boundary!
-  const contentType = request.headers.get("content-type")
-  if (contentType) {
-    headers["Content-Type"] = contentType
-  }
+  // NÃO repassamos o Content-Type original! 
+  // O Node.js fetch() irá gerar um NOVO boundary automaticamente ao receber o formData.
+  // Se forçarmos o antigo, o Multer no backend não vai conseguir decodificar o arquivo.
 
   const formData = await request.formData()
 
