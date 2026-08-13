@@ -64,3 +64,50 @@ export async function proxyToBackend(
 
   return response
 }
+
+/**
+ * Helper para repassar FormData (ex: arquivos multipart) pro backend Express.
+ * Mantém os boundaries originais do FormData para que o multer consiga processar.
+ */
+export async function proxyFormDataToBackend(
+  request: NextRequest,
+  backendPath: string
+) {
+  const url = `${BACKEND_URL}${backendPath}`
+  const headers: HeadersInit = {}
+
+  const cookieHeader = request.headers.get("cookie")
+  if (cookieHeader) {
+    headers["Cookie"] = cookieHeader
+  }
+
+  // Repassa os headers de content-type originais do FormData que incluem o boundary!
+  const contentType = request.headers.get("content-type")
+  if (contentType) {
+    headers["Content-Type"] = contentType
+  }
+
+  const formData = await request.formData()
+
+  const backendResponse = await fetch(url, {
+    method: "POST",
+    headers,
+    body: formData,
+  })
+
+  let data: any
+  try {
+    data = await backendResponse.json()
+  } catch {
+    data = null
+  }
+
+  const response = NextResponse.json(data, { status: backendResponse.status })
+
+  const setCookieHeaders = backendResponse.headers.getSetCookie()
+  for (const cookie of setCookieHeaders) {
+    response.headers.append("Set-Cookie", cookie)
+  }
+
+  return response
+}

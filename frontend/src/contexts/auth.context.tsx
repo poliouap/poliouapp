@@ -11,6 +11,7 @@ interface AuthContextType {
   isLoading: boolean
   signIn: (data: LoginInput) => Promise<void>
   logout: () => Promise<void>
+  updateUser: (updatedData: Partial<User>) => void
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
@@ -19,6 +20,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+
+  const updateUser = (updatedData: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedData } : null))
+  }
 
   useEffect(() => {
     // Ao iniciar o app, o backend já vai ler o cookie HttpOnly e retornar o usuário, se houver.
@@ -72,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         signIn,
         logout,
+        updateUser,
       }}
     >
       {children}

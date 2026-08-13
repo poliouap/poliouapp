@@ -1,24 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { useAuth } from "@/contexts/auth.context";
+import { userService } from "@/services/user.service";
+import { updateProfileSchema, avatarSchema } from "@/lib/validations/profile";
+import { z } from "zod";
 
 type Tab = "geral" | "seguranca";
 type Theme = "light" | "dark" | "system";
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [activeTab, setActiveTab] = React.useState<Tab>("geral");
   const [selectedTheme, setSelectedTheme] = React.useState<Theme>(
     user?.themePreference || "light"
   );
   const [name, setName] = React.useState(user?.name || "");
+  
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync name when user loads
+  // Sync state when user loads
   React.useEffect(() => {
     if (user?.name) setName(user.name);
-  }, [user?.name]);
+    if (user?.themePreference) setSelectedTheme(user.themePreference);
+  }, [user]);
 
   // Generate initials from user name
   const initials = React.useMemo(() => {
@@ -29,6 +37,72 @@ export default function SettingsPage() {
     }
     return parts[0].substring(0, 2).toUpperCase();
   }, [user?.name]);
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSaving(true);
+      // Valida os dados no Zod antes de disparar o fetch!
+      const validatedData = updateProfileSchema.parse({
+        name,
+        themePreference: selectedTheme,
+      });
+
+      const res = await userService.updateProfile(validatedData);
+      if (res.success && res.data) {
+        updateUser(res.data.user);
+        alert("Perfil salvo com sucesso!");
+      }
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        alert(error.issues[0].message);
+      } else {
+        alert(`Erro ao salvar perfil: ${error.message}`);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleThemeChange = async (theme: Theme) => {
+    setSelectedTheme(theme);
+    try {
+      const validatedData = updateProfileSchema.parse({ themePreference: theme });
+      const res = await userService.updateProfile(validatedData);
+      if (res.success && res.data) {
+        updateUser(res.data.user);
+      }
+    } catch (error: any) {
+      console.error("Erro ao salvar tema:", error.message);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      
+      // Validações no Zod para limite de tamanho e formato!
+      avatarSchema.parse({ file });
+
+      const res = await userService.uploadAvatar(file);
+      if (res.success && res.data) {
+        updateUser(res.data.user);
+      }
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        alert(error.issues[0].message);
+      } else {
+        alert(`Erro ao fazer upload da imagem: ${error.message}`);
+      }
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   return (
     <div className="w-full max-w-[688px] mx-auto px-4 py-8 sm:px-6 md:px-10 md:py-14 flex flex-col gap-6 md:gap-8">
@@ -86,7 +160,7 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 mt-6 sm:mt-8">
               {/* Avatar */}
               <div className="relative shrink-0">
-                <div className="w-24 h-24 rounded-full outline outline-2 outline-stone-300 overflow-hidden flex items-center justify-center">
+                <div className={`w-24 h-24 rounded-full outline outline-2 outline-stone-300 overflow-hidden flex items-center justify-center ${isUploading ? "opacity-50" : ""}`}>
                   {user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -101,29 +175,45 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </div>
+                
+                {/* File Input Oculto */}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="image/jpeg, image/png, image/webp" 
+                  className="hidden" 
+                />
+
                 {/* Camera edit button */}
                 <button
                   id="btn-change-avatar"
-                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center outline outline-1 outline-stone-300 shadow-sm hover:bg-stone-50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center outline outline-1 outline-stone-300 shadow-sm hover:bg-stone-50 transition-colors disabled:cursor-not-allowed"
                   title="Alterar avatar"
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    className="text-stone-600"
-                  >
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
+                  {isUploading ? (
+                    <span className="w-4 h-4 border-2 border-stone-600 border-t-transparent rounded-full animate-spin"></span>
+                  ) : (
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      className="text-stone-600"
+                    >
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                  )}
                 </button>
               </div>
 
               {/* Name field + save */}
-              <div className="flex flex-col gap-5 flex-1">
+              <div className="flex flex-col gap-5 flex-1 w-full">
                 <div>
                   <label
                     htmlFor="settings-name"
@@ -143,9 +233,11 @@ export default function SettingsPage() {
 
                 <button
                   id="btn-save-profile"
-                  className="w-full sm:w-32 h-9 bg-neutral-900 text-orange-50 rounded-full text-sm font-medium shadow-sm hover:bg-neutral-800 transition-colors"
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  className="w-full sm:w-32 h-9 bg-neutral-900 text-orange-50 rounded-full text-sm font-medium shadow-sm hover:bg-neutral-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  Salvar perfil
+                  {isSaving ? "Salvando..." : "Salvar perfil"}
                 </button>
               </div>
             </div>
@@ -171,7 +263,7 @@ export default function SettingsPage() {
               {/* Theme: Claro */}
               <button
                 id="theme-light"
-                onClick={() => setSelectedTheme("light")}
+                onClick={() => handleThemeChange("light")}
                 className={`w-full h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center gap-3 outline outline-1 shadow-sm transition-all ${
                   selectedTheme === "light"
                     ? "bg-neutral-400/5 outline-neutral-400"
@@ -218,7 +310,7 @@ export default function SettingsPage() {
               {/* Theme: Escuro */}
               <button
                 id="theme-dark"
-                onClick={() => setSelectedTheme("dark")}
+                onClick={() => handleThemeChange("dark")}
                 className={`w-full h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center gap-3 outline outline-1 shadow-sm transition-all ${
                   selectedTheme === "dark"
                     ? "bg-neutral-400/5 outline-neutral-400"
@@ -257,7 +349,7 @@ export default function SettingsPage() {
               {/* Theme: Sistema */}
               <button
                 id="theme-system"
-                onClick={() => setSelectedTheme("system")}
+                onClick={() => handleThemeChange("system")}
                 className={`w-full h-24 sm:h-28 rounded-2xl flex flex-col items-center justify-center gap-3 outline outline-1 shadow-sm transition-all ${
                   selectedTheme === "system"
                     ? "bg-neutral-400/5 outline-neutral-400"

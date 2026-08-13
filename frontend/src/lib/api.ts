@@ -26,6 +26,14 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
     },
   }
 
+  // Remove o Content-Type se estivermos enviando um FormData
+  // Isso permite que o navegador defina automaticamente o multipart/form-data com o boundary correto.
+  if (options.body instanceof FormData) {
+    const headers = new Headers(config.headers)
+    headers.delete("Content-Type")
+    config.headers = headers
+  }
+
   try {
     const response = await fetch(url, config)
     
