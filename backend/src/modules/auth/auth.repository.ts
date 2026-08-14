@@ -15,7 +15,8 @@ export const authRepository = {
         name: true,
         email: true,
         avatarUrl: true,
-        themePreference: true
+        themePreference: true,
+        isPremium: true
       }
     });
   },
@@ -48,13 +49,31 @@ export const authRepository = {
     });
   },
 
+  findSessionByToken: async (refreshToken: string) => {
+    return prisma.session.findUnique({
+      where: { refreshToken },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            themePreference: true,
+            isPremium: true,
+          },
+        },
+      },
+    });
+  },
+
   deleteSession: async (refreshToken: string) => {
     return prisma.session.delete({
-      where : {
-        refreshToken: refreshToken
-      }
-    })
-  }
+      where: {
+        refreshToken: refreshToken,
+      },
+    });
+  },
 };
 
 

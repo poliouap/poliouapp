@@ -65,6 +65,58 @@ export const authService = {
         email: user.email,
         avatarUrl: user.avatarUrl,
         themePreference: user.themePreference,
+        isPremium: user.isPremium,
+      },
+    };
+  },
+
+  refreshSession: async (refreshToken: string) => {
+    if (!refreshToken) {
+      throw new Error("Token não fornecido");
+    }
+
+    let decoded: { userId: string };
+    try {
+      decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET as string
+      ) as { userId: string };
+    } catch {
+      throw new Error("Refresh token inválido ou expirado");
+    }
+
+    const session = await authRepository.findSessionByToken(refreshToken);
+
+    if (!session || !session.user) {
+      throw new Error("Sessão não encontrada ou revogada");
+    }
+
+    if (new Date() > new Date(session.expiresAt)) {
+      try {
+        await authRepository.deleteSession(refreshToken);
+      } catch {
+        // Ignora erro caso já tenha sido deletado
+      }
+      throw new Error("Sessão expirada");
+    }
+
+    const jwtPayload = { userId: session.user.id };
+
+    const accessToken = jwt.sign(
+      jwtPayload,
+      process.env.JWT_ACCESS_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    return {
+      accessToken,
+      user: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        avatarUrl: session.user.avatarUrl,
+        themePreference: session.user.themePreference,
+        isPremium: session.user.isPremium,
       },
     };
   },

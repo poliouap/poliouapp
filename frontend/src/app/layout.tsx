@@ -44,7 +44,7 @@ export default async function RootLayout({
         .map(c => `${c.name}=${c.value}`)
         .join("; ");
 
-      const res = await fetch(`${apiUrl}/api/auth/me`, {
+      let res = await fetch(`${apiUrl}/api/auth/me`, {
         headers: {
           Cookie: allCookies,
         },
@@ -55,6 +55,20 @@ export default async function RootLayout({
         const data = await res.json();
         // A API retorna { success: true, data: { user: {...} } }
         initialUser = data.data?.user ?? null;
+      } else if (res.status === 401 && cookieStore.get("refreshToken")?.value) {
+        // Se o accessToken expirou mas temos refreshToken, busca os dados via refresh no SSR
+        const refreshRes = await fetch(`${apiUrl}/api/auth/refresh`, {
+          method: "POST",
+          headers: {
+            Cookie: allCookies,
+          },
+          cache: 'no-store'
+        });
+
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          initialUser = refreshData.data?.user ?? null;
+        }
       }
     } catch (e) {
       console.error("Failed to fetch initial user SSR", e);

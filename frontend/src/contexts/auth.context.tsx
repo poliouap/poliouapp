@@ -39,10 +39,29 @@ export function AuthProvider({
   }
 
   useEffect(() => {
-    // Como a checagem principal de sessão foi para o Servidor (SSR),
-    // nós não precisamos mais disparar o getMe() imediatamente no carregamento da tela.
-    // Você pode usar este hook futuramente para polling ou background refresh se quiser.
-  }, [])
+    setUser(initialUser)
+
+    // Se o usuário não veio no initialUser e não estamos na página de login/registro,
+    // tenta recuperar a sessão no cliente (o interceptor cuidará do refresh silencioso se necessário)
+    if (!initialUser && typeof window !== "undefined") {
+      const isAuthPage =
+        window.location.pathname.startsWith("/login") ||
+        window.location.pathname.startsWith("/register")
+
+      if (!isAuthPage) {
+        authService
+          .getMe()
+          .then((res) => {
+            if (res.success && res.data?.user) {
+              setUser(res.data.user)
+            }
+          })
+          .catch(() => {
+            // O interceptor em api.ts já gerencia a tentativa de refresh e o redirecionamento
+          })
+      }
+    }
+  }, [initialUser])
 
 
   async function signIn(data: LoginInput) {

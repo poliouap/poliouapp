@@ -59,6 +59,42 @@ export const authController = {
     }
   },
 
+  refresh: async (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      throw new AppError("Refresh token não fornecido", 401);
+    }
+
+    try {
+      const result = await authService.refreshSession(refreshToken);
+      const isProduction = process.env.NODE_ENV === "production";
+
+      res.cookie("accessToken", result.accessToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+        maxAge: 15 * 60 * 1000, // 15 minutos
+        path: "/",
+      });
+
+      return res.status(200).json(
+        new ApiResponse(
+          {
+            user: result.user,
+          },
+          "Token renovado com sucesso"
+        )
+      );
+    } catch (error: any) {
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      throw new AppError(error.message || "Sessão expirada", 401);
+    }
+  },
+
   logout: async (req: Request, res: Response) => {
     // Agora o refreshToken vem do cookie HttpOnly de forma automática
     const refreshToken = req.cookies?.refreshToken;

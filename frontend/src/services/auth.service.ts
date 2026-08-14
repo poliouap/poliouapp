@@ -5,6 +5,7 @@ export interface User {
   id: string
   name: string
   email: string
+  isPremium: boolean
   avatarUrl?: string | null
   themePreference?: "light" | "dark" | "system"
 }
@@ -50,6 +51,16 @@ export const authService = {
   async getMe(): Promise<ApiResponse<{ user: User }>> {
     return fetchApi<ApiResponse<{ user: User }>>("/api/auth/me", {
       method: "GET",
+    })
+  },
+
+  /**
+   * Renova o accessToken usando o cookie HttpOnly de refreshToken
+   * POST /api/auth/refresh
+   */
+  async refreshToken(): Promise<ApiResponse<{ user: User }>> {
+    return fetchApi<ApiResponse<{ user: User }>>("/api/auth/refresh", {
+      method: "POST",
     })
   },
 
